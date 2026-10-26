@@ -24,26 +24,15 @@ Edge AI hardware is fragmented. Deploying a model today means:
 - Re-doing this for every new device or model
 - No standard way to compare results across hardware
 
-Nuatara solves this with one command.
-
----
-
-## November MVP — Two Milestones
-
-### Milestone 1: Vision Models (YOLOv8n)
-
-**Goal:** Prove that Nuatara can benchmark and compare the same vision model
-across two hardware backends — Apple Neural Engine (Mac) and RKNN NPU (Khadas) —
-and surface a clear deployment recommendation from a single CLI command.
-This validates the backend abstraction
+Nuatara solves this with
 
 ### Milestone 2: Language Models (TinyLlama 1.1B)
 
 **Goal:** Extend the platform beyond vision to language models.
 Prove that the same hardware-agnostic abstraction works for LLM inference
-via llama.cpp, giving developers a single tool to evaluate edge LLM deployment
-across Mac (Metal GPU) and Khadas (CPU), and understand the trade-offs
-before committing to a runtime.
+via llama.cpp and RKNN, giving developers a single tool to evaluate edge LLM
+deployment across Mac (Metal GPU) and Khadas (NPU), and understand the
+trade-offs before committing to a runtime.
 
 > **Note:** Llama 3 8B requires ~16GB RAM at fp16 — beyond Khadas Edge 2.
 > TinyLlama 1.1B (~700MB at q4) is the realistic Khadas target for November.
@@ -53,7 +42,7 @@ before committing to a runtime.
 ## Scoring Formula (v1)
 
 Scores are relative within a comparison set.
-A score of 91 vs 78 means MacBook wins on this workload —
+A score of 91 vs 79 means MacBook wins on this workload —
 not that Khadas is a bad deployment target.
 
 ---
@@ -62,8 +51,8 @@ not that Khadas is a bad deployment target.
 
 | Model        | MacBook Air M2          | Khadas Edge 2         |
 |--------------|-------------------------|-----------------------|
-| YOLOv8n      | ONNX Runtime (ANE)      | RKNN INT8             |
-| TinyLlama    | llama.cpp (Metal)       | llama.cpp (CPU)       |
+| YOLOv8n      | ONNX Runtime (ANE)      | RKNN NPU              |
+| TinyLlama    | llama.cpp (Metal)       | RKNN NPU              |
 | Llama 3 8B   | llama.cpp (Metal)       | ✗ insufficient RAM    |
 
 ---
