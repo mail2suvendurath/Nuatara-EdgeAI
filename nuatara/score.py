@@ -1,8 +1,25 @@
 """
-Scoring formula: rank results across devices.
+Scoring formula:
 Score = 0.4 * throughput + 0.3 * memory_efficiency + 0.2 * setup + 0.1 * power
-For now we score on throughput only (others default to 0.5).
 """
+
+# Memory budget per device (MB) — higher budget = more headroom
+MEMORY_BUDGET = {
+    "onnx": 500,    # MacBook — plenty of RAM
+    "rknpu": 200,   # Khadas — tighter
+}
+
+# Setup complexity score (0-100) — how hard is it to get running
+SETUP_SCORE = {
+    "onnx": 90,     # pip install onnxruntime, done
+    "rknpu": 55,    # need RKNN SDK, model conversion, board setup
+}
+
+# Power estimate score (0-100) — higher = more power efficient
+POWER_SCORE = {
+    "onnx": 60,     # MacBook ANE is efficient but still a laptop
+    "rknpu": 85,    # Khadas NPU — low power edge device
+}
 
 
 def compute_scores(results):
@@ -13,12 +30,22 @@ def compute_scores(results):
 
     scored = []
     for r in results:
-        throughput_norm = r["fps"] / max_fps if max_fps > 0 else 0
+        backend = r["backend"]
+
+        throughput_norm = (r["fps"] / max_fps) * 100 if max_fps > 0 else 0
+
+        budget = MEMORY_BUDGET.get(backend, 500)
+        mem_used = r.get("memory_mb", 15.6)
+        memory_score = max(0, min(100, (1 - mem_used / budget) * 100))
+
+        setup = SETUP_SCORE.get(backend, 50)
+        power = POWER_SCORE.get(backend, 50)
+
         score = round(
-            0.4 * throughput_norm * 100
-            + 0.3 * 50   # memory_efficiency placeholder
-            + 0.2 * 50   # setup_complexity placeholder
-            + 0.1 * 50,  # power placeholder
+            0.4 * throughput_norm
+            + 0.3 * memory_score
+            + 0.2 * setup
+            + 0.1 * power,
             0
         )
         scored.append({**r, "score": int(score)})
