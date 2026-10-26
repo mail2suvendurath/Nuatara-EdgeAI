@@ -1,0 +1,30 @@
+# Nuatara Percept — Laptop / x86 (ONNX Runtime, FP32)
+# Change 'backend: onnx' → 'backend: rknpu' to run on Khadas. Nothing else changes.
+
+target:      laptop-x86
+description: "Dev laptop, ONNX Runtime CPU, YOLOv8n FP32"
+
+backend:     onnx
+model:       ../models/yolov8n.onnx
+precision:   fp32
+
+input:
+  source_type: camera
+  source_id:   "0"
+  width:       640
+  height:      640
+
+output:
+  sink_type:  json_stdout
+  draw_boxes: true
+
+detection:
+  conf_threshold: 0.25
+  nms_threshold:  0.45
+  max_detections: 100
+  input_size:     640
+  reg_max:        16
+
+npu:
+  core:               auto
+  warmup_iterations:  5
