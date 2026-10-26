@@ -20,8 +20,8 @@ NOTE (future Rust migration):
 from __future__ import annotations
 
 import numpy as np
-from engine.types import Detection
-from engine.config import DetectionConfig
+from nuatara.types import Detection
+from nuatara.config import DetectionConfig
 
 # COCO class names (80 classes, index matches row 4+i in the output tensor)
 COCO_NAMES: list[str] = [

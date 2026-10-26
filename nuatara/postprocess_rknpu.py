@@ -27,9 +27,9 @@ NOTE (future Rust migration):
 from __future__ import annotations
 
 import numpy as np
-from engine.types import Detection
-from engine.config import DetectionConfig
-from engine.postprocess_onnx import COCO_NAMES, _nms   # reuse NMS + class names
+from nuatara.types import Detection
+from nuatara.config import DetectionConfig
+from nuatara.postprocess_onnx import COCO_NAMES, _nms   # reuse NMS + class names
 
 
 # Strides for each of the 3 FPN levels (must match export settings)

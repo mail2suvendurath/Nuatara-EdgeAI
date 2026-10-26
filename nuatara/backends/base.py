@@ -5,7 +5,7 @@ ZERO SDK IMPORTS. Runs clean on any machine.
 from __future__ import annotations
 from typing import Protocol, runtime_checkable
 import numpy as np
-from engine.types import BackendInfo
+from nuatara.types import BackendInfo
 
 @runtime_checkable
 class InferenceBackend(Protocol):

@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 import numpy as np
-from engine.types import BackendInfo
+from nuatara.types import BackendInfo
 
 _DEFAULT_PROVIDERS = [
     "CUDAExecutionProvider",

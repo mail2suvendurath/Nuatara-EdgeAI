@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 import numpy as np
-from engine.types import BackendInfo
+from nuatara.types import BackendInfo
 
 NPU_CORE_AUTO  = 0
 NPU_CORE_0     = 1
