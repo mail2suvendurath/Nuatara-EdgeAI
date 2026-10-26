@@ -33,7 +33,7 @@ nuatara demo yolov8n --video input.mp4 --backend rknpu  # run on Khadas NPU
 |--------|---------|-----|-------|
 | MacBook Air M2 | ONNX / ANE | 184 | 93 |
 | Khadas Edge 2 | RKNN INT8 NPU | 48 | 78 |
-| Khadas Edge 2 | ONNX CPU | 7.7 | — |
+| Khadas Edge 2 | ONNX CPU | 7.7 | 41 |
 
 ## Milestones
 
