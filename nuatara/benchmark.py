@@ -18,6 +18,10 @@ MODEL_REGISTRY = {
         "rknpu": "models/yolov8n.rknn",
         "input_shape": (1, 3, 640, 640),
     },
+    "tinyllama": {
+        "llama_cpp": "models/tinyllama-1.1b-q4.gguf",
+        "type": "llm",
+    },
 }
 
 WARMUP_ITERS = 5
@@ -31,6 +35,23 @@ def run_benchmark(model_name, device):
     if not meta:
         print(f"    Unknown model: {model_name}")
         return None
+
+    # LLM path
+    if meta.get("type") == "llm":
+        model_path = meta.get(backend_name)
+        if not model_path or not Path(model_path).exists():
+            return None  # silently skip incompatible backends
+        from nuatara.benchmark import benchmark_llama
+        r = benchmark_llama(model_path)
+        return {
+            "device":          device["name"],
+            "backend":         backend_name,
+            "tokens_per_sec":  r["tokens_per_sec"],
+            "latency_ms":      round(1000 / r["tokens_per_sec"], 1),
+            "fps":             r["tokens_per_sec"],
+            "memory_mb":       700,
+            "detections":      0,
+        }
 
     model_path = meta.get(backend_name)
     if not model_path or not Path(model_path).exists():
@@ -83,3 +104,12 @@ def run_benchmark_from_config(config_path):
         cfg = yaml.safe_load(f)
     print(f"Loaded config: {config_path}")
     print(cfg)
+
+
+def benchmark_llama(model_path: str, n_gpu_layers: int = -1) -> dict:
+    from nuatara.backends.llama_cpp import LlamaCppBackend
+    b = LlamaCppBackend(model_path, n_gpu_layers=n_gpu_layers)
+    b.load()
+    result = b.benchmark(n_tokens=50)
+    b.release()
+    return result

@@ -11,7 +11,10 @@ def print_report(model_name, scored):
     for r in scored:
         print(f"  {r['device']}")
         print(f"    Runtime  : {r['backend'].upper()}")
-        print(f"    Latency  : {r['latency_ms']}ms   {r['fps']} FPS")
+        if r.get("tokens_per_sec"):
+            print(f"    Throughput: {r['tokens_per_sec']} tokens/sec")
+        else:
+            print(f"    Latency  : {r['latency_ms']}ms   {r['fps']} FPS")
         print(f"    Score    : {r['score']}")
         print()
 
