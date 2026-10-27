@@ -1,5 +1,5 @@
 # Nuatara-EdgeAI — Product Vision
-*Last updated: October 2026*
+*Last updated: October 27 2026*
 
 ---
 
