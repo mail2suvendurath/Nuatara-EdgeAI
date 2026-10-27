@@ -8,6 +8,7 @@ from nuatara.report import print_report
 
 def cmd_recommend(args):
     model = args.model
+    quality_report = getattr(args, "quality_report", False)
     print(f"\nNuatara — feasibility check for: {model}\n")
 
     devices = discover_devices()
@@ -29,6 +30,11 @@ def cmd_recommend(args):
     scored = compute_scores(results)
     print_report(model, scored)
 
+    if quality_report:
+        from nuatara.quality import check_score_compression, format_quality_report
+        score_report = check_score_compression(results)
+        print(format_quality_report(model, results, score_report))
+
 
 def cmd_benchmark(args):
     from nuatara.benchmark import run_benchmark_from_config
@@ -49,6 +55,8 @@ def main():
 
     rec = sub.add_parser("recommend", help="Recommend best runtime for a model")
     rec.add_argument("model", help="Model name (e.g. yolov8n)")
+    rec.add_argument("--quality-report", action="store_true",
+                     help="Show INT8 vs FP16 quantization trade-off report")
 
     bench = sub.add_parser("benchmark", help="Benchmark a model on a specific config")
     bench.add_argument("model", help="Model name")

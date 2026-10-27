@@ -55,8 +55,7 @@ def run_benchmark(model_name, device):
 
     model_path = meta.get(backend_name)
     if not model_path or not Path(model_path).exists():
-        print(f"    Model not found: {model_path}")
-        return None
+        return None  # silently skip — backend not supported for this model
 
     try:
         backend = create_backend(backend_name)
@@ -75,8 +74,9 @@ def run_benchmark(model_name, device):
         latency_ms = (elapsed / BENCH_ITERS) * 1000
         fps = BENCH_ITERS / elapsed
 
-        # Real detection on test image
+        # Real detection on test image — capture max confidence for quality check
         detections = []
+        max_confidence = None
         if Path(TEST_IMAGE).exists() and backend_name == "onnx":
             tensor, orig_size = load_image(TEST_IMAGE)
             outputs = backend.infer(tensor)
@@ -84,8 +84,10 @@ def run_benchmark(model_name, device):
             print(f"    Detections on test image: {len(detections)}")
             for d in detections[:5]:
                 print(f"      {d.class_name}: {d.confidence:.2f}")
+            if detections:
+                max_confidence = max(d.confidence for d in detections)
 
-        return {
+        result = {
             "device":     device["name"],
             "backend":    backend_name,
             "latency_ms": round(latency_ms, 1),
@@ -93,6 +95,9 @@ def run_benchmark(model_name, device):
             "memory_mb":  15.6,
             "detections": len(detections),
         }
+        if max_confidence is not None:
+            result["max_confidence"] = round(max_confidence, 3)
+        return result
 
     except Exception as e:
         print(f"    Benchmark failed: {e}")
