@@ -104,7 +104,7 @@ def postprocess_onnx(
         cls_mask = class_ids == cls
         cls_boxes = boxes_xyxy[cls_mask]
         cls_scores = confidences[cls_mask]
-        kept = _nms(cls_boxes, cls_scores, cfg.nms_threshold)
+        kept = _nms(cls_boxes, cls_scores, cfg.iou_threshold)
         for idx in kept:
             detections.append(Detection(
                 x1=float(cls_boxes[idx, 0]),
@@ -117,8 +117,8 @@ def postprocess_onnx(
             ))
 
     detections.sort(key=lambda d: d.confidence, reverse=True)
-    if cfg.max_detections > 0:
-        detections = detections[:cfg.max_detections]
+    if 100 > 0:
+        detections = detections[:100]
     return detections
 
 
