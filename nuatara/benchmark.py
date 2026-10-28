@@ -62,6 +62,26 @@ def run_benchmark(model_name, device):
         backend = create_backend(backend_name)
         backend.load(model_path, precision="int8" if backend_name == "rknpu" else "fp32")
 
+        # Real detection on test image — run FIRST to capture max_confidence
+        detections = []
+        max_confidence = None
+        if Path(TEST_IMAGE).exists() and backend_name in ("onnx", "rknpu"):
+            tensor, orig_size = load_image(TEST_IMAGE)
+            if backend_name == "onnx":
+                outputs = backend.infer(tensor)
+                detections = postprocess_onnx(outputs, DetectionConfig())
+            elif backend_name == "rknpu":
+                from nuatara.postprocess_rknpu import postprocess_rknpu
+                inp = (tensor[0].transpose(1, 2, 0) * 255).astype(np.uint8)[None]
+                outputs = backend.infer(inp)
+                detections = postprocess_rknpu(outputs, DetectionConfig())
+            print(f"    Detections on test image: {len(detections)}")
+            for d in detections[:5]:
+                print(f"      {d.class_name}: {d.confidence:.2f}")
+            if detections:
+                max_confidence = max(d.confidence for d in detections)
+
+        # Speed benchmark with dummy tensor
         dummy = np.random.rand(*meta["input_shape"]).astype(np.float32)
 
         for _ in range(WARMUP_ITERS):
@@ -74,19 +94,6 @@ def run_benchmark(model_name, device):
 
         latency_ms = (elapsed / BENCH_ITERS) * 1000
         fps = BENCH_ITERS / elapsed
-
-        # Real detection on test image — capture max confidence for quality check
-        detections = []
-        max_confidence = None
-        if Path(TEST_IMAGE).exists() and backend_name == "onnx":
-            tensor, orig_size = load_image(TEST_IMAGE)
-            outputs = backend.infer(tensor)
-            detections = postprocess_onnx(outputs, DetectionConfig())
-            print(f"    Detections on test image: {len(detections)}")
-            for d in detections[:5]:
-                print(f"      {d.class_name}: {d.confidence:.2f}")
-            if detections:
-                max_confidence = max(d.confidence for d in detections)
 
         result = {
             "device":     device["name"],
