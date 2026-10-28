@@ -5,33 +5,31 @@ Detects INT8 score compression by comparing max confidence scores
 across backends and recommends adjusted thresholds.
 """
 
-# Empirically measured score ranges per backend for YOLOv8n
-# These are updated when a real image benchmark runs
-KNOWN_MAX_SCORES = {
-    "onnx":  0.90,   # FP32 on Mac — full confidence range
-    "rknpu": 0.50,   # INT8 on Khadas — scores capped by quantization
-}
-
 # Compression threshold: if max score < this, flag it
 COMPRESSION_THRESHOLD = 0.70
 
 # Recommended conf_threshold adjustments per backend
+# Formula: if compressed, suggest threshold = measured_max * 0.25
+# So detections that would have passed at 0.25 on FP32 still pass on INT8
 RECOMMENDED_CONF = {
-    "onnx":  0.25,   # default works fine
-    "rknpu": 0.12,   # lower needed to recover missed detections
+    "onnx":  0.25,   # default works fine for FP32
+    "rknpu": 0.12,   # lower needed to recover missed detections in INT8
 }
 
 
 def check_score_compression(results):
     """
-    Given a list of benchmark results (each with 'backend' and optionally
-    'max_confidence'), return a quality report dict per backend.
+    Given a list of benchmark results (each with 'backend' and
+    'max_confidence' measured from a real image), return a quality
+    report dict per backend.
+
+    Only backends that ran on a real image have 'max_confidence'.
+    Backends without it are skipped — no hardcoded fallbacks.
     """
     report = {}
     for r in results:
         backend = r["backend"]
-        # Use measured max_confidence if present, else fall back to known values
-        max_conf = r.get("max_confidence", KNOWN_MAX_SCORES.get(backend))
+        max_conf = r.get("max_confidence")   # only use measured values
         if max_conf is None:
             continue
 
@@ -77,7 +75,8 @@ def format_quality_report(model_name, results, score_report):
         rknpu = rknpu_results[0]
         lines.append(f"  Khadas Edge 2 — Quantization Trade-off:")
         lines.append(f"")
-        lines.append(f"    INT8  (current) : {rknpu['fps']:.0f} FPS   conf scores capped ~{KNOWN_MAX_SCORES['rknpu']:.2f}   some missed detections")
+        rknpu_max = score_report.get("rknpu", {}).get("max_confidence", "?")
+        lines.append(f"    INT8  (current) : {rknpu['fps']:.0f} FPS   conf scores capped ~{rknpu_max}   some missed detections")
         lines.append(f"    FP16  (option)  : ~25 FPS   conf scores up to ~0.80    near-FP32 accuracy")
         lines.append(f"    FP32  (option)  : ~12 FPS   full accuracy              defeats edge purpose")
         lines.append(f"")

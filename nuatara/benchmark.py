@@ -55,7 +55,8 @@ def run_benchmark(model_name, device):
 
     model_path = meta.get(backend_name)
     if not model_path or not Path(model_path).exists():
-        return None  # silently skip — backend not supported for this model
+        print(f"    Model not found: {model_path}")
+        return None
 
     try:
         backend = create_backend(backend_name)
